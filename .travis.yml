@@ -3,5 +3,3 @@ components:
     - tools
     - platform-tools
     - tools
-script:
-    -TestSuite
