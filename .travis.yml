@@ -1,1 +1,7 @@
 language: java
+components:
+    - tools
+    - platform-tools
+    - tools
+script:
+    -TestSuite
