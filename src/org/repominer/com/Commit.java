@@ -31,10 +31,10 @@ public class Commit {
 	public Integer getLinesDeleted() {
 		return linesDeleted;
 	}
-	public void setLinesDeleted(Integer linesDeleted) {
-		this.linesDeleted = linesDeleted;
+	public void addLinesDeleted(Integer linesDeleted) {
+		this.linesDeleted += linesDeleted;
 	}
-	public void setLinesAdded(Integer linesAdded) {
-		this.linesAdded = linesAdded;
+	public void addLinesAdded(Integer linesAdded) {
+		this.linesAdded += linesAdded;
 	}
 }

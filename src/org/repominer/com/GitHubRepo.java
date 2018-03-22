@@ -54,7 +54,7 @@ public class GitHubRepo {
 		boolean success = true;
 		try {
 			String s = null;
-			Process p = Runtime.getRuntime().exec("git --git-dir " + this.repoPath.concat(File.separatorChar + ".git") + " log --pretty=format:'>>>>%h,%an,%aE,%at'");
+			Process p = Runtime.getRuntime().exec("git --git-dir " + this.repoPath.concat(File.separatorChar + ".git") + " log --pretty=format:'>>>>%h,%an,%aE,%at' --numstat");
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 			System.out.println(String.format("Cloning %s", this.url));
@@ -62,9 +62,15 @@ public class GitHubRepo {
 				//wait
 			}
 			Commit tempCommit = null;
+			Integer lineNum = 0;
 			while ((s = stdInput.readLine()) != null) {
+				lineNum++;
 				String tempLine = s.replace("'", "");
+				if (tempLine.length() == 0) {
+					continue;
+				}
 				if (tempLine.startsWith(">>>>")) {
+					tempLine = tempLine.replace(">>>>", "");
 	            	String[] parts = tempLine.split(",");
 	            	tempCommit = new Commit(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]));
 	            	if (!contributions.containsKey(parts[2])) {
@@ -76,10 +82,15 @@ public class GitHubRepo {
 				}
 				else {
 					String[] parts = tempLine.split("\t");
-					tempCommit.setLinesAdded(Integer.parseInt(parts[0]));
-					tempCommit.setLinesDeleted(Integer.parseInt(parts[1]));
-					this.linesAdded += tempCommit.getLinesAdded();
-					this.linesDeleted += tempCommit.getLinesDeleted();
+					try {
+						tempCommit.addLinesAdded(Integer.parseInt(parts[0]));
+						tempCommit.addLinesDeleted(Integer.parseInt(parts[1]));
+						this.linesAdded += tempCommit.getLinesAdded();
+						this.linesDeleted += tempCommit.getLinesDeleted();
+					}
+					catch (NumberFormatException e) {
+						System.out.println(String.format("Could not parse line %s of repository %s:%s", lineNum, this.repoName,tempLine));
+					}
 				}
             	this.commits.add(tempCommit);
             }
@@ -89,18 +100,18 @@ public class GitHubRepo {
 			for (String key : this.contributions.keySet()) {
 				String contributerEmail = key;
 				Integer contributerCommits = this.contributions.get(key);
-				Integer percentageCommits = contributerCommits/this.commits.size();
+				float percentageCommits = contributerCommits/this.commits.size();
 				Integer numLinesAdded = this.getNumLinesAddedForAuthor(key);
-				Integer percentageLinesAdded = 0;
-				Integer percentageLinesDeleted = 0;
+				float percentageLinesAdded = 0;
+				float percentageLinesDeleted = 0;
 				Integer numLinesDeleted = this.getNumLinesDeletedForAuthor(key);
-				if (this.linesAdded != 0 || numLinesAdded != 0) {
+				if (this.linesAdded > 0 && numLinesAdded > 0) {
 					percentageLinesAdded = Math.abs(numLinesAdded/this.linesAdded);
 				}
-				if (this.linesDeleted != 0 || numLinesDeleted != 0) {
+				if (this.linesDeleted > 0 && numLinesDeleted > 0) {
 					percentageLinesDeleted = Math.abs(numLinesDeleted/this.linesDeleted);
 				}
-				writer.println(String.format("%s,%s,%s,%s,%s,%s", contributerEmail, contributerCommits, percentageCommits, numLinesAdded, percentageLinesAdded, numLinesDeleted, percentageLinesDeleted));
+				writer.println(String.format("%s,%s,%s,%s,%s,%s,%s", contributerEmail, contributerCommits, percentageCommits, numLinesAdded, percentageLinesAdded, numLinesDeleted, percentageLinesDeleted));
 			}
 			writer.close();
 			if (!stdError.toString().equals("")) {

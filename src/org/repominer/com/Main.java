@@ -11,7 +11,7 @@ public class Main {
 		new File(userHome.concat("RepoMiner" + File.separatorChar + "repos")).mkdir();
 		new File(userHome.concat("RepoMiner" + File.separatorChar + "analysis")).mkdir();
 		System.out.println("Starting To Mine Github");
-		GitHubRepo githubrepo = new GitHubRepo("https://github.com/ionman64/CalendarView");
+		GitHubRepo githubrepo = new GitHubRepo("https://github.com/joshuaju/SEP_webclient");
 		githubrepo.cloneProject();
 		githubrepo.analyse();
 		
