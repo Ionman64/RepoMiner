@@ -1,13 +1,13 @@
 package tests.repominer.com;
 
 import org.junit.jupiter.api.Test;
-import org.repominer.com.Repository;
+import org.repominer.com.GitHubRepo;
 
 class TestSuite {
 
 	@Test
 	void cloneProject() {
-		Repository testRepo = new Repository();
+		GitHubRepo testRepo = new GitHubRepo("");
 		assert(testRepo.cloneProject());
 	}
 
