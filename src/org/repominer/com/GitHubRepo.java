@@ -62,10 +62,10 @@ public class GitHubRepo {
 		boolean success = true;
 		try {
 			String s = null;
-			Process p = Runtime.getRuntime().exec("git --git-dir " + this.repoPath.concat(File.separatorChar + ".git") + " log --pretty=format:'>>>>%h,%an,%aE,%at' --numstat");
+			Process p = Runtime.getRuntime().exec("git --git-dir " + this.repoPath.concat(File.separatorChar + ".git") + " log --pretty=format:'>>>>%h,%an,%aE,%at' --numstat --all");
 			BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-			System.out.println(String.format("Cloning %s", this.url));
+			System.out.println(String.format("Analysing %s", this.url));
 			while (!stdInput.ready() && p.isAlive()) {
 				//wait
 			}
@@ -82,6 +82,7 @@ public class GitHubRepo {
 					tempLine = tempLine.replace(">>>>", "");
 	            	String[] parts = tempLine.split(",");
 	            	tempCommit = new Commit(parts[0], parts[1], parts[2], Integer.parseInt(parts[3]));
+	            	this.commits.add(tempCommit);
 	            	if ((tempContributer = this.getContributerFromEmail(parts[2])) != null) {
 	            		tempContributer.addCommit(tempCommit);
 	            	}
@@ -96,6 +97,8 @@ public class GitHubRepo {
 					try {
 						tempCommit.addLinesAdded(Integer.parseInt(parts[0]));
 						tempCommit.addLinesDeleted(Integer.parseInt(parts[1]));
+						this.linesAdded += Integer.parseInt(parts[0]);
+						this.linesDeleted += Integer.parseInt(parts[1]);
 					}
 					catch (NumberFormatException e) {
 						System.out.println(String.format("Could not parse line %s of repository %s:%s", lineNum, this.repoName,tempLine));
@@ -105,10 +108,6 @@ public class GitHubRepo {
 			File file = new File(System.getProperty("user.home") + File.separatorChar + "RepoMiner" + File.separatorChar + "analysis" + File.separatorChar + this.repoName + ".csv");
 			PrintWriter writer = new PrintWriter(file, "UTF-8");
 			writer.println("authorEmail,numCommits,percentageCommits,numLinesAdded,percentageLinesAdded,numLinesDeleted,percentageLinesDeleted");
-			for (Contributer contributer: this.contributers) {
-				this.linesAdded += contributer.getLinesAdded();
-				this.linesDeleted += contributer.getLinesDeleted();
-			}
 			System.out.println(String.format("Lines Added:%s\nLines Deleted:%s\n", this.linesAdded, this.linesDeleted));
 			for (Contributer contributer : this.contributers) {
 				Integer contributerCommits = contributer.commits.size();
@@ -118,13 +117,13 @@ public class GitHubRepo {
 				float percentageLinesDeleted = 0;
 				Integer numLinesDeleted = contributer.getLinesDeleted();
 				if (this.linesAdded > 0 && numLinesAdded > 0) {
-					percentageLinesAdded = Math.abs(numLinesAdded/this.linesAdded);
+					percentageLinesAdded = calculatePercentage(numLinesAdded, this.linesAdded);
 				}
 				if (this.linesDeleted > 0 && numLinesDeleted > 0) {
-					percentageLinesDeleted = Math.abs(numLinesDeleted/this.linesDeleted);
+					percentageLinesDeleted = calculatePercentage(numLinesDeleted, this.linesDeleted);
 				}
-				System.out.println(String.format("Commiter:%s\nLinesAdded:%s\nLinesDeleted:%s\npercentageDeleted:%s\npercentageAdded:%s", contributer.getAuthorEmail(), numLinesAdded, numLinesDeleted, percentageLinesDeleted, percentageLinesAdded));
-				writer.println(String.format("%s,%s,%s,%s,%s,%s,%s", contributer.getAuthorEmail(), contributerCommits, percentageCommits, numLinesAdded, percentageLinesAdded, numLinesDeleted, percentageLinesDeleted));
+				System.out.println(String.format(java.util.Locale.US, "Commiter:%s\nLinesAdded:%s\nLinesDeleted:%s\npercentageDeleted:%.2f\npercentageAdded:%.2f", contributer.getAuthorEmail(), numLinesAdded, numLinesDeleted, percentageLinesDeleted, percentageLinesAdded));
+				writer.println(String.format(java.util.Locale.US, "%s,%s,%.2f,%s,%.2f,%s,%.2f", contributer.getAuthorEmail(), contributerCommits, percentageCommits, numLinesAdded, percentageLinesAdded, numLinesDeleted, percentageLinesDeleted));
 			}
 			writer.close();
 			if (!stdError.toString().equals("")) {
@@ -140,6 +139,9 @@ public class GitHubRepo {
 			e.printStackTrace();
 		}
 		return success;
+	}
+	private Float calculatePercentage(int n, int d) {
+		return (n * 1f) / d;
 	}
 	
 }

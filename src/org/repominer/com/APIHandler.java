@@ -16,7 +16,7 @@ public class APIHandler {
 		this.repo = repo;
 	}
 	public String getCommits() {
-		String url = "/repos/:owner/:repo/git/commits";
+		String url = "https://api.github.com/repos/:owner/:repo/git/commits";
 		url = url.replace(":owner", this.user);
 		url = url.replace(":repo", this.repo);
 		
@@ -28,8 +28,8 @@ public class APIHandler {
 	    try {
 	        URL url = new URL(requestUrl);
 	        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-	        connection.setDoInput(true);
-	        connection.setDoOutput(true);
+	        //connection.setDoInput(true);
+	        //connection.setDoOutput(true);
 	        connection.setRequestMethod("POST");
 	        connection.setRequestProperty("Accept", "application/json");
 	        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -44,6 +44,7 @@ public class APIHandler {
 	        br.close();
 	        connection.disconnect();
 	    } catch (Exception e) {
+	    	e.printStackTrace();
 	            throw new RuntimeException(e.getMessage());
 	    }
 	    return jsonString.toString();
