@@ -1,30 +1,29 @@
 package org.repominer.com;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 
-import org.repominer.visualiser.*;
-
-import com.repominer.server.Server;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 
 public class Main {
 
 	public static void main(String[] args) throws IOException {
-		String accessToken = "c0506854272cca9f5c0680e2187e55c81ccfcfb2";
-		//Setup[] 
-		System.out.println(PieChartGenerate.generate());
 		String userHome = System.getProperty("user.home");
 		new File(userHome.concat(File.separatorChar + "RepoMiner")).mkdir();
 		new File(userHome.concat(File.separatorChar + "RepoMiner" + File.separatorChar + "repos")).mkdir();
 		new File(userHome.concat(File.separatorChar +"RepoMiner" + File.separatorChar + "analysis")).mkdir();
-		System.out.println("Starting To Mine Github");
-		GitHubRepo githubrepo = new GitHubRepo("https://github.com/jHelsing/Heartbeat");
-		
-		//APIHandler apiHandler = new APIHandler(accessToken, "joshuaju", "SEP_webclient");
-		//apiHandler.getCommits();
-		githubrepo.cloneProject();
-		githubrepo.analyse();
-		Server server = new Server();
-		
+		Reader in = new FileReader(userHome.concat(File.separatorChar + "RepoMiner" + File.separatorChar + "projects.csv"));
+		Iterable<CSVRecord> records = CSVFormat.DEFAULT.parse(in);
+		for (CSVRecord record: records) {
+			if (record.get(2).startsWith("https://github.com/")) {
+				System.out.println("Mining " + record.get(2));
+				GitHubRepo githubrepo = new GitHubRepo(record.get(2));
+				githubrepo.cloneProject();
+				githubrepo.gitfame();
+			}
+		}
 	}
 }

@@ -140,6 +140,34 @@ public class GitHubRepo {
 		}
 		return success;
 	}
+	public void gitfame() {
+		try {
+		String s = null;
+		Process p = Runtime.getRuntime().exec(String.format("git-fame -s --sort=commits -wt --log=ERROR  %s", this.repoPath));
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+		System.out.println(String.format("Cloning %s", this.url));
+		while (!stdInput.ready() && p.isAlive()) {
+			//wait
+		}
+        System.out.println("Here is the standard error of the command (if any):\n");
+        while ((s = stdError.readLine()) != null) {
+            System.out.println(s);
+        }
+        File file = new File(System.getProperty("user.home") + File.separatorChar + "RepoMiner" + File.separatorChar + "analysis" + File.separatorChar + this.repoName + ".csv");
+		PrintWriter writer = new PrintWriter(file, "UTF-8");
+        while ((s = stdInput.readLine()) != null) {
+        	if ((s.startsWith("+")) || (s.startsWith("|"))) {
+        		writer.write(s + "\n");
+        	}
+            System.out.println(s);
+        }
+        writer.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	private Float calculatePercentage(int n, int d) {
 		return (n * 1f) / d;
 	}
