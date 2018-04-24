@@ -143,7 +143,7 @@ public class GitHubRepo {
 	public void gitfame() {
 		try {
 		String s = null;
-		Process p = Runtime.getRuntime().exec(String.format("git-fame -s --sort=commits -wt --log=ERROR  %s", this.repoPath));
+		Process p = Runtime.getRuntime().exec(String.format("python -m gitfame -s --sort=commits -wt --log=ERROR  %s", this.repoPath));
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
 		BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 		System.out.println(String.format("Cloning %s", this.url));
